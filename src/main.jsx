@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles.css'
+import './brand.css'
 
 const Icon = ({ children }) => <span className="icon" aria-hidden="true">{children}</span>
 const plans = [
@@ -9,14 +10,14 @@ const plans = [
   { name: 'Anual', price: '199,90', note: 'A melhor escolha para o ano inteiro.' }
 ]
 
-function Brand() { return <a className="brand" href="/"><span>M</span><b>MyTV</b></a> }
+function Brand() { return <a className="brand" href="/" aria-label="MyTV"><img src="/assets/mytv-logo.png" alt="MyTV" /></a> }
 
 function Header({ portal, setPortal }) {
   return <header className="topbar"><Brand /><nav><a href="#recursos">Recursos</a><a href="#esportes">Esportes</a><a href="#planos">Planos</a></nav><button className="outline" onClick={() => setPortal(!portal)}>{portal ? 'Voltar ao site' : 'Minha conta'} <span>↗</span></button></header>
 }
 
 function LiveMock() {
-  return <div className="tv-mock"><div className="tv-nav"><Brand /><span>⌕</span><span>♡</span><span className="avatar">A</span></div><div className="screen-art"><div className="live-pill">● AO VIVO</div><div className="screen-copy"><small>CANAL EM DESTAQUE</small><h3>Seu entretenimento<br />sem complicação.</h3><p>TV ao vivo, filmes, séries e eventos esportivos.</p><button>Assistir agora <b>→</b></button></div></div><div className="mini-row"><div><span className="mini-icon">◉</span><p><b>Programação atual</b><small>Saiba o que está passando</small></p></div><div><span className="mini-icon">⚽</span><p><b>Esportes ao vivo</b><small>Jogos e eventos do dia</small></p></div></div></div>
+  return <div className="tv-mock"><div className="tv-nav"><Brand /><span>⌕</span><span>♡</span><span className="avatar">A</span></div><div className="screen-art"><div className="live-pill">● AO VIVO</div><div className="screen-copy"><small>EXPERIÊNCIA MYTV</small><h3>Tudo o que você gosta.<br />Em uma única tela.</h3><p>TV ao vivo, filmes, séries e eventos esportivos.</p><button>Assistir agora <b>→</b></button></div></div><div className="mini-row"><div><span className="mini-icon">◉</span><p><b>Programação atual</b><small>Saiba o que está passando</small></p></div><div><span className="mini-icon">⚽</span><p><b>Esportes ao vivo</b><small>Jogos e eventos do dia</small></p></div></div></div>
 }
 
 function Landing({ setPortal }) {
