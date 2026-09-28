@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './styles.css'
 import './brand.css'
 import './channel-wall.css'
+import './catalog.css'
 
 const Icon = ({ children }) => <span className="icon" aria-hidden="true">{children}</span>
 const plans = [
@@ -55,6 +56,60 @@ function useOfficialPlans() {
   return officialPlans
 }
 
+function useShowcaseData() {
+  const [data, setData] = useState({ home: null, catalog: null, sports: [] })
+  useEffect(() => {
+    const controller = new AbortController()
+    Promise.all([
+      fetch(`${API_BASE}/home.php`, { signal: controller.signal }).then(response => response.ok ? response.json() : null),
+      fetch(`${API_BASE}/get_tmdb.php`, { signal: controller.signal }).then(response => response.ok ? response.json() : null),
+      fetch(`${API_BASE}/get_sports.php`, { signal: controller.signal }).then(response => response.ok ? response.json() : [])
+    ]).then(([home, catalog, sports]) => setData({ home, catalog, sports: Array.isArray(sports) ? sports : [] })).catch(() => {})
+    return () => controller.abort()
+  }, [])
+  return data
+}
+
+const readableCollection = (key) => ({ destaques: 'Em destaque', mais_assistidos: 'Mais assistidos', lancamentos: 'Lançamentos', acao: 'Ação', comedia: 'Comédia', populares: 'Populares', acao_aventura: 'Ação e aventura', drama: 'Drama', sci_fi: 'Sci-fi e fantasia', animacoes: 'Animações', familia: 'Para a família', tv: 'Séries para crianças' }[key] || key.replaceAll('_', ' '))
+
+function FeatureCards({ onOpen }) {
+  const { home, catalog, sports } = useShowcaseData()
+  const tvArt = home?.heroes?.find(item => item.kind === 'programme')?.backdrop_url || ''
+  const mediaArt = Object.values(catalog?.movies || {}).flat().find(item => item?.backdrop_url)?.backdrop_url || ''
+  const sportArt = sports.find(item => item.homeBadgeUrl || item.awayBadgeUrl)?.homeBadgeUrl || sports.find(item => item.awayBadgeUrl)?.awayBadgeUrl || ''
+  const cards = [
+    ['live', '▣', 'TV ao vivo', 'Canais organizados por categoria, com programação atual e navegação instantânea.', 'Explorar canais', tvArt, 'violet'],
+    ['vod', '◉', 'Filmes e séries', 'Encontre algo novo ou continue exatamente de onde parou.', 'Ver catálogo', mediaArt, 'blue'],
+    ['sports', '◈', 'Esportes', 'Partidas, campeonatos e várias opções de transmissão quando disponíveis.', 'Ver agenda', sportArt, 'orange']
+  ]
+  return <div className="feature-grid">{cards.map(([id, icon, title, description, action, art, tone]) => <article className={`feature-card ${tone} feature-card-art`} key={id} style={art ? { '--card-art': `url(${art})` } : {}} onClick={() => onOpen(id)}><Icon>{icon}</Icon><h3>{title}</h3><p>{description}</p><button onClick={() => onOpen(id)}>{action} →</button></article>)}</div>
+}
+
+function BrowsePage({ kind, onBack, officialPlans }) {
+  const [channels, setChannels] = useState([])
+  const [activeCategory, setActiveCategory] = useState('Todos')
+  const [query, setQuery] = useState('')
+  const { catalog, sports } = useShowcaseData()
+  useEffect(() => {
+    if (kind !== 'live') return
+    const controller = new AbortController()
+    fetch(`${API_BASE}/site_channels.php`, { signal: controller.signal }).then(response => response.ok ? response.json() : null).then(payload => setChannels(Array.isArray(payload?.channels) ? payload.channels : [])).catch(() => {})
+    return () => controller.abort()
+  }, [kind])
+  const goPlans = () => document.querySelector('#planos')?.scrollIntoView({ behavior: 'smooth' })
+  if (kind === 'sports') return <><SportsAgenda /><section id="planos" className="plans section"><PlanGrid plans={officialPlans} onChoose={goPlans} /></section></>
+  if (kind === 'live') {
+    const categories = ['Todos', ...new Set(channels.flatMap(channel => channel.categories || []))]
+    const visible = activeCategory === 'Todos' ? channels : channels.filter(channel => (channel.categories || []).includes(activeCategory))
+    return <main className="browse-page"><button className="back-browse" onClick={onBack}>← Voltar</button><p className="eyebrow">TV AO VIVO</p><h1>Escolha um canal<br />e aproveite a MyTV.</h1><div className="browse-tabs">{categories.slice(0, 14).map(category => <button className={activeCategory === category ? 'active' : ''} onClick={() => setActiveCategory(category)} key={category}>{category}</button>)}</div><div className="public-channel-grid">{visible.slice(0, 80).map(channel => <button className="public-channel" onClick={goPlans} key={channel.id}><img src={channel.poster} alt={channel.name} onError={(event) => { event.currentTarget.src = '/assets/mytv-logo.png' }} /></button>)}</div><section id="planos" className="plans section"><PlanGrid plans={officialPlans} onChoose={goPlans} /></section></main>
+  }
+  const sections = [...Object.entries(catalog?.movies || {}), ...Object.entries(catalog?.series || {})].slice(0, 7)
+  const platforms = ['Netflix', 'Prime Video', 'Disney+', 'Max', 'Apple TV+', 'Globoplay']
+  return <main className="browse-page vod-browse"><button className="back-browse" onClick={onBack}>← Voltar</button><p className="eyebrow">FILMES E SÉRIES</p><h1>Encontre o próximo<br />título para maratonar.</h1><button className="search-cta" onClick={goPlans}>⌕ Pesquise filmes, séries e muito mais <span>→</span></button><section className="platforms"><p>CATÁLOGO COMPLETO DISPONÍVEL DE</p><div>{platforms.map(platform => <button key={platform} onClick={goPlans}>{platform}</button>)}</div></section><div className="vod-collections">{sections.map(([key, items], index) => <section className="vod-row" key={`${key}-${index}`}><h2>{readableCollection(key)}</h2><div>{(items || []).slice(0, 10).map(item => <button className="vod-poster" key={`${key}-${item.id}`} onClick={goPlans}>{item.poster_url && <img src={item.poster_url} alt={item.title} />}<span>{item.title}</span></button>)}</div></section>)}</div><div className="catalog-fade"><button className="primary" onClick={goPlans}>Ver planos e assistir <span>→</span></button></div><section id="planos" className="plans section"><PlanGrid plans={officialPlans} onChoose={goPlans} /></section></main>
+}
+
+function PlanGrid({ plans, onChoose }) { return <><div className="section-heading centered"><p className="eyebrow">ESCOLHA SEU TEMPO</p><h2>Uma assinatura simples.</h2><p>Escolha o plano que funciona melhor para você.</p></div><div className="plan-grid">{plans.map(plan => <article className={`plan ${plan.featured ? 'featured' : ''}`} key={plan.id || plan.name}>{plan.featured && <span className="best">MAIS ESCOLHIDO</span>}<h3>{plan.name}</h3><p>{plan.note}</p><div className="price"><sup>R$</sup><b>{plan.price}</b></div><small>acesso MyTV</small><button className={plan.featured ? 'primary' : 'outline'} onClick={onChoose}>Escolher plano <span>→</span></button></article>)}</div></> }
+
 function SportsAgenda() {
   const [events, setEvents] = useState(fallbackEvents)
   const [category, setCategory] = useState('Todos')
@@ -97,8 +152,10 @@ function ChannelWall() {
 }
 
 function Landing({ setPortal, officialPlans }) {
+  const [browse, setBrowse] = useState('')
+  if (browse) return <BrowsePage kind={browse} onBack={() => setBrowse('')} officialPlans={officialPlans} />
   return <><section className="hero"><div className="hero-copy"><p className="eyebrow">MYTV · DO SEU JEITO</p><h1>Uma TV completa.<br /><em>Uma experiência só sua.</em></h1><p className="lead">Canais ao vivo, filmes, séries e esportes em uma experiência rápida, elegante e feita para a sua TV.</p><div className="hero-actions"><button className="primary" onClick={() => document.querySelector('#planos').scrollIntoView({ behavior: 'smooth' })}>Começar agora <span>→</span></button><button className="text-button" onClick={() => document.querySelector('#recursos').scrollIntoView({ behavior: 'smooth' })}>Conheça a MyTV <span>↓</span></button></div><div className="trust"><span>✦</span><p><b>Feito para TV</b><small>Experiência pensada para o controle remoto.</small></p></div></div><div className="hero-visual"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><LiveMock /></div></section>
-  <section id="recursos" className="features section"><div className="section-heading"><p className="eyebrow">TUDO EM UM SÓ LUGAR</p><h2>Mais conteúdo.<br />Menos complicação.</h2><p>A MyTV organiza tudo que você gosta em uma navegação simples e rápida.</p></div><div className="feature-grid"><article className="feature-card violet"><Icon>▣</Icon><h3>TV ao vivo</h3><p>Canais organizados por categoria, com programação atual e navegação instantânea.</p><span>Explorar canais →</span></article><article className="feature-card blue"><Icon>◉</Icon><h3>Filmes e séries</h3><p>Encontre algo novo ou continue exatamente de onde parou.</p><span>Ver catálogo →</span></article><article className="feature-card orange"><Icon>◈</Icon><h3>Esportes</h3><p>Partidas, campeonatos e várias opções de transmissão quando disponíveis.</p><span>Ver agenda →</span></article></div></section>
+  <section id="recursos" className="features section"><div className="section-heading"><p className="eyebrow">TUDO EM UM SÓ LUGAR</p><h2>Mais conteúdo.<br />Menos complicação.</h2><p>A MyTV organiza tudo que você gosta em uma navegação simples e rápida.</p></div><FeatureCards onOpen={setBrowse} /></section>
   <ChannelWall />
   <SportsAgenda />
   <section id="planos" className="plans section"><div className="section-heading centered"><p className="eyebrow">ESCOLHA SEU TEMPO</p><h2>Uma assinatura simples.</h2><p>Escolha o plano que funciona melhor para você. Sem fidelidade e com renovação prática.</p></div><div className="plan-grid">{officialPlans.map(plan => <article className={`plan ${plan.featured ? 'featured' : ''}`} key={plan.id || plan.name}>{plan.featured && <span className="best">MAIS ESCOLHIDO</span>}<h3>{plan.name}</h3><p>{plan.note}</p><div className="price"><sup>R$</sup><b>{plan.price}</b></div><small>acesso MyTV</small><button className={plan.featured ? 'primary' : 'outline'} onClick={() => setPortal(true)}>Escolher plano <span>→</span></button></article>)}</div></section>
