@@ -150,7 +150,16 @@ function ChannelWall() {
     try { return new URL(value, `${API_BASE}/`).href } catch { return '' }
   }
   const canonical = channels.filter(channel => !/^disney\s*\+?\s*\d+\s*$/iu.test(String(channel.name || '')) && imageUrl(channel))
-  const catalog = canonical.length >= 3 ? canonical : fallbackChannels
+  const catalog = useMemo(() => {
+    const items = [...(canonical.length >= 3 ? canonical : fallbackChannels)]
+    // Fisher–Yates: evita padrões visuais e preserva cada canal uma única vez
+    // antes de a animação começar o próximo ciclo.
+    for (let index = items.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1))
+      ;[items[index], items[swapIndex]] = [items[swapIndex], items[index]]
+    }
+    return items
+  }, [channels])
   // Cada trilha percorre a grade inteira, começando em pontos diferentes. Assim a
   // vitrine mostra a variedade real antes de repetir qualquer canal.
   const rows = [0, 1, 2].map(row => {
