@@ -21,7 +21,12 @@ const fallbackChannels = [
   ['globo', 'Globo'], ['sbt', 'SBT'], ['record', 'Record'], ['band', 'Band'], ['redetv', 'RedeTV!'], ['cazetv', 'CazéTV'],
   ['espn', 'ESPN'], ['sportv', 'SporTV'], ['premiere', 'Premiere'], ['tntsports', 'TNT Sports'], ['bandsports', 'BandSports'], ['combate', 'Combate'],
   ['disneyplus', 'Disney+'], ['max', 'Max'], ['amazonprimevideo', 'Prime Video'], ['telecine', 'Telecine'], ['paramountplus', 'Paramount+'], ['appletv1', 'Apple TV+']
-].map(([id, name]) => ({ id: `fallback-${id}`, name, poster: `https://embedcanaisdetv.com/images/${id}.png` }))
+].map(([id, name], index) => ({
+  id: `fallback-${id}`,
+  name,
+  poster: `https://embedcanaisdetv.com/images/${id}.png`,
+  categories: index < 6 ? ['Canais abertos'] : index < 12 ? ['Esportes'] : ['Filmes e séries']
+}))
 
 function Brand() { return <a className="brand" href="/" aria-label="MyTV"><img src="/assets/mytv-logo.png" alt="MyTV" /></a> }
 
@@ -82,14 +87,17 @@ function FeatureCards({ onOpen }) {
 }
 
 function BrowsePage({ kind, onBack, officialPlans }) {
-  const [channels, setChannels] = useState([])
+  const [channels, setChannels] = useState(fallbackChannels)
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [query, setQuery] = useState('')
   const { catalog, sports } = useShowcaseData()
   useEffect(() => {
     if (kind !== 'live') return
     const controller = new AbortController()
-    fetch(`${API_BASE}/site_channels.php`, { signal: controller.signal }).then(response => response.ok ? response.json() : null).then(payload => setChannels(Array.isArray(payload?.channels) ? payload.channels : [])).catch(() => {})
+    fetch(`${API_BASE}/site_channels.php`, { signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(payload => { if (Array.isArray(payload?.channels) && payload.channels.length) setChannels(payload.channels) })
+      .catch(() => {})
     return () => controller.abort()
   }, [kind])
   const goPlans = () => document.querySelector('#planos')?.scrollIntoView({ behavior: 'smooth' })
