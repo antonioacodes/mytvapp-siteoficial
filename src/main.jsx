@@ -73,16 +73,12 @@ function useShowcaseData() {
 const readableCollection = (key) => ({ destaques: 'Em destaque', mais_assistidos: 'Mais assistidos', lancamentos: 'Lançamentos', acao: 'Ação', comedia: 'Comédia', populares: 'Populares', acao_aventura: 'Ação e aventura', drama: 'Drama', sci_fi: 'Sci-fi e fantasia', animacoes: 'Animações', familia: 'Para a família', tv: 'Séries para crianças' }[key] || key.replaceAll('_', ' '))
 
 function FeatureCards({ onOpen }) {
-  const { home, catalog, sports } = useShowcaseData()
-  const tvArt = home?.heroes?.find(item => item.kind === 'programme')?.backdrop_url || ''
-  const mediaArt = Object.values(catalog?.movies || {}).flat().find(item => item?.backdrop_url)?.backdrop_url || ''
-  const sportArt = sports.find(item => item.homeBadgeUrl || item.awayBadgeUrl)?.homeBadgeUrl || sports.find(item => item.awayBadgeUrl)?.awayBadgeUrl || ''
   const cards = [
-    ['live', '▣', 'TV ao vivo', 'Canais organizados por categoria, com programação atual e navegação instantânea.', 'Explorar canais', tvArt, 'violet'],
-    ['vod', '◉', 'Filmes e séries', 'Encontre algo novo ou continue exatamente de onde parou.', 'Ver catálogo', mediaArt, 'blue'],
-    ['sports', '◈', 'Esportes', 'Partidas, campeonatos e várias opções de transmissão quando disponíveis.', 'Ver agenda', sportArt, 'orange']
+    ['live', '▣', 'TV ao vivo', 'Canais organizados por categoria, com programação atual e navegação instantânea.', 'Explorar canais', 'violet'],
+    ['vod', '◉', 'Filmes e séries', 'Encontre algo novo ou continue exatamente de onde parou.', 'Ver catálogo', 'blue'],
+    ['sports', '◈', 'Esportes', 'Partidas, campeonatos e várias opções de transmissão quando disponíveis.', 'Ver agenda', 'orange']
   ]
-  return <div className="feature-grid">{cards.map(([id, icon, title, description, action, art, tone]) => <article className={`feature-card ${tone} feature-card-art`} key={id} style={art ? { '--card-art': `url(${art})` } : {}} onClick={() => onOpen(id)}><Icon>{icon}</Icon><h3>{title}</h3><p>{description}</p><button onClick={() => onOpen(id)}>{action} →</button></article>)}</div>
+  return <div className="feature-grid">{cards.map(([id, icon, title, description, action, tone]) => <article className={`feature-card ${tone}`} key={id} onClick={() => onOpen(id)}><Icon>{icon}</Icon><h3>{title}</h3><p>{description}</p><button onClick={() => onOpen(id)}>{action} →</button></article>)}</div>
 }
 
 function BrowsePage({ kind, onBack, officialPlans }) {
@@ -147,8 +143,7 @@ function ChannelWall() {
   const canonical = channels.filter(channel => !/(?:\+|\s)\d+\s*$/u.test(String(channel.name || '')) && imageUrl(channel))
   const catalog = canonical.length >= 3 ? canonical : fallbackChannels
   const rows = [0, 1, 2].map(row => catalog.filter((_, index) => index % 3 === row))
-  const fallbackLogo = '/assets/mytv-logo.png'
-  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel) || fallbackLogo} alt={channel.name} onError={(event) => { if (event.currentTarget.src !== new URL(fallbackLogo, window.location.origin).href) event.currentTarget.src = fallbackLogo }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
+  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{Array.from({ length: 8 }, () => row).flat().map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.closest('.channel-tile')?.remove() }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
 }
 
 function Landing({ setPortal, officialPlans }) {

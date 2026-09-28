@@ -1,6 +1,7 @@
 body{background:linear-gradient(180deg,#040714 0%,#04151c 35%,#0b242b 58%,#040714 100%) fixed}
 .channel-wall-section{max-width:none!important;width:100%;padding:120px 0;overflow:hidden;background:transparent}
-.channel-wall{width:100%;overflow:hidden}
+.channel-wall{width:100%;overflow:hidden;transform:none;padding:12px 0 28px;gap:14px}
+.channel-track{min-width:max-content}
 .channel-track{animation-duration:70s}
 .channel-track.row-2{animation-duration:78s}
 .channel-track.row-3{animation-duration:74s}
