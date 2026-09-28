@@ -1,0 +1,10 @@
+body{background:linear-gradient(180deg,#040714 0%,#04151c 35%,#0b242b 58%,#040714 100%) fixed}
+.channel-wall-section{max-width:none!important;width:100%;padding:120px 0;overflow:hidden;background:transparent}
+.channel-wall{width:100%;overflow:hidden}
+.channel-track{animation-duration:70s}
+.channel-track.row-2{animation-duration:78s}
+.channel-track.row-3{animation-duration:74s}
+.channel-tile{width:104px;height:104px;flex-basis:104px;padding:14px;overflow:hidden}
+.channel-tile img{width:72px;height:62px;max-width:72px;max-height:62px;object-fit:contain;object-position:center}
+@media(max-width:850px){.channel-tile{width:90px;height:90px;flex-basis:90px}.channel-tile img{width:62px;height:52px;max-width:62px;max-height:52px}}
+@media(max-width:520px){.channel-wall-section{padding:80px 0}.channel-tile{width:74px;height:74px;flex-basis:74px;padding:9px}.channel-tile img{width:52px;height:44px;max-width:52px;max-height:44px}}
