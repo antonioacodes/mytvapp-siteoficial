@@ -56,19 +56,22 @@ function ChannelWall() {
   const [channels, setChannels] = useState(fallbackChannels)
   useEffect(() => {
     const controller = new AbortController()
-    fetch(`${API_BASE}/channels.php?limit=30`, { signal: controller.signal })
+    fetch(`${API_BASE}/site_channels.php`, { signal: controller.signal })
       .then(response => response.ok ? response.json() : Promise.reject(new Error('canais indisponíveis')))
       .then(payload => { if (Array.isArray(payload.channels) && payload.channels.length) setChannels(payload.channels) })
       .catch(() => {})
     return () => controller.abort()
   }, [])
-  const rows = [0, 1, 2].map(row => channels.filter((_, index) => index % 3 === row))
   const imageUrl = (channel) => {
     const value = String(channel.poster || '').trim()
     if (!value) return ''
     try { return new URL(value, `${API_BASE}/`).href } catch { return '' }
   }
-  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}>{imageUrl(channel) ? <img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.style.display = 'none'; event.currentTarget.nextElementSibling.hidden = false }} /> : null}<span hidden={Boolean(imageUrl(channel))}>{channel.name}</span></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
+  const canonical = channels.filter(channel => !/(?:\+|\s)\d+\s*$/u.test(String(channel.name || '')) && imageUrl(channel))
+  const catalog = canonical.length >= 3 ? canonical : fallbackChannels
+  const rows = [0, 1, 2].map(row => catalog.filter((_, index) => index % 3 === row))
+  const fallbackLogo = '/assets/mytv-logo.png'
+  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel) || fallbackLogo} alt={channel.name} onError={(event) => { if (event.currentTarget.src !== new URL(fallbackLogo, window.location.origin).href) event.currentTarget.src = fallbackLogo }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
 }
 
 function Landing({ setPortal }) {
