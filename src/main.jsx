@@ -16,8 +16,10 @@ const fallbackEvents = [
   { id: 'demo-2', leagueName: 'Agenda MyTV', sportCategory: 'Outros', homeTeam: 'Mais esportes', awayTeam: 'Hoje', timeStr: '21:00', isLive: false, broadcastChannel: 'MyTV' }
 ]
 const fallbackChannels = [
-  { id: 'demo-c1', name: 'Canais ao vivo', poster: '' }, { id: 'demo-c2', name: 'Esportes', poster: '' }, { id: 'demo-c3', name: 'Filmes e séries', poster: '' }, { id: 'demo-c4', name: 'Programação', poster: '' }, { id: 'demo-c5', name: 'Entretenimento', poster: '' }, { id: 'demo-c6', name: 'Infantil', poster: '' }
-]
+  ['globo', 'Globo'], ['sbt', 'SBT'], ['record', 'Record'], ['band', 'Band'], ['redetv', 'RedeTV!'], ['cazetv', 'CazéTV'],
+  ['espn', 'ESPN'], ['sportv', 'SporTV'], ['premiere', 'Premiere'], ['tntsports', 'TNT Sports'], ['bandsports', 'BandSports'], ['combate', 'Combate'],
+  ['disneyplus', 'Disney+'], ['max', 'Max'], ['amazonprimevideo', 'Prime Video'], ['telecine', 'Telecine'], ['paramountplus', 'Paramount+'], ['appletv1', 'Apple TV+']
+].map(([id, name]) => ({ id: `fallback-${id}`, name, poster: `https://embedcanaisdetv.com/images/${id}.png` }))
 
 function Brand() { return <a className="brand" href="/" aria-label="MyTV"><img src="/assets/mytv-logo.png" alt="MyTV" /></a> }
 
@@ -60,8 +62,13 @@ function ChannelWall() {
       .catch(() => {})
     return () => controller.abort()
   }, [])
-  const rows = [channels.slice(0, 10), channels.slice(10, 20), channels.slice(20, 30)]
-  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}>{channel.poster ? <img src={channel.poster} alt={channel.name} /> : <span>{channel.name}</span>}</div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
+  const rows = [0, 1, 2].map(row => channels.filter((_, index) => index % 3 === row))
+  const imageUrl = (channel) => {
+    const value = String(channel.poster || '').trim()
+    if (!value) return ''
+    try { return new URL(value, `${API_BASE}/`).href } catch { return '' }
+  }
+  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}>{imageUrl(channel) ? <img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.style.display = 'none'; event.currentTarget.nextElementSibling.hidden = false }} /> : null}<span hidden={Boolean(imageUrl(channel))}>{channel.name}</span></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
 }
 
 function Landing({ setPortal }) {
