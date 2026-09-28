@@ -5,7 +5,11 @@ import './brand.css'
 import './channel-wall.css'
 import './catalog.css'
 
-const Icon = ({ children }) => <span className="icon" aria-hidden="true">{children}</span>
+function FeatureIcon({ type }) {
+  if (type === 'live') return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+  if (type === 'vod') return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="m10 9 5 3-5 3Z" /></svg>
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 15 5l3.3-.2.8 3.1 2.5 2.1-1.6 2.9.2 3.3-3.1.8-2.1 2.5-2.9-1.6-2.9 1.6-2.1-2.5-3.1-.8.2-3.3L2.4 10l2.5-2.1.8-3.1L9 5Z" /><path d="m9 8 6 8M15 8l-6 8" /></svg>
+}
 const plans = [
   { name: 'Mensal', price: '19,90', note: 'Liberdade para renovar quando quiser.' },
   { name: 'Trimestral', price: '54,90', note: 'Mais tempo para curtir sem preocupação.', featured: true },
@@ -79,11 +83,11 @@ const readableCollection = (key) => ({ destaques: 'Em destaque', mais_assistidos
 
 function FeatureCards({ onOpen }) {
   const cards = [
-    ['live', '▣', 'TV ao vivo', 'Canais organizados por categoria, com programação atual e navegação instantânea.', 'Explorar canais', 'violet'],
-    ['vod', '◉', 'Filmes e séries', 'Encontre algo novo ou continue exatamente de onde parou.', 'Ver catálogo', 'blue'],
-    ['sports', '◈', 'Esportes', 'Partidas, campeonatos e várias opções de transmissão quando disponíveis.', 'Ver agenda', 'orange']
+    ['live', 'TV ao vivo', 'Canais organizados por categoria, com programação atual e navegação instantânea.', 'Explorar canais', 'violet'],
+    ['vod', 'Filmes e séries', 'Encontre algo novo ou continue exatamente de onde parou.', 'Ver catálogo', 'blue'],
+    ['sports', 'Esportes', 'Partidas, campeonatos e várias opções de transmissão quando disponíveis.', 'Ver agenda', 'orange']
   ]
-  return <div className="feature-grid">{cards.map(([id, icon, title, description, action, tone]) => <article className={`feature-card ${tone}`} key={id} onClick={() => onOpen(id)}><Icon>{icon}</Icon><h3>{title}</h3><p>{description}</p><button onClick={() => onOpen(id)}>{action} →</button></article>)}</div>
+  return <div className="feature-grid">{cards.map(([id, title, description, action, tone]) => <article className={`feature-card ${tone}`} key={id} onClick={() => onOpen(id)}><span className="feature-icon"><FeatureIcon type={id} /></span><h3>{title}</h3><p>{description}</p><button type="button" onClick={() => onOpen(id)}>{action} <span>→</span></button></article>)}</div>
 }
 
 function BrowsePage({ kind, onBack, officialPlans }) {
