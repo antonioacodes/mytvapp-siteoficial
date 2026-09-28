@@ -140,10 +140,15 @@ function ChannelWall() {
     if (!value) return ''
     try { return new URL(value, `${API_BASE}/`).href } catch { return '' }
   }
-  const canonical = channels.filter(channel => !/(?:\+|\s)\d+\s*$/u.test(String(channel.name || '')) && imageUrl(channel))
+  const canonical = channels.filter(channel => !/^disney\s*\+?\s*\d+\s*$/iu.test(String(channel.name || '')) && imageUrl(channel))
   const catalog = canonical.length >= 3 ? canonical : fallbackChannels
-  const rows = [0, 1, 2].map(row => catalog.filter((_, index) => index % 3 === row))
-  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{Array.from({ length: 8 }, () => row).flat().map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.closest('.channel-tile')?.remove() }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
+  // Cada trilha percorre a grade inteira, começando em pontos diferentes. Assim a
+  // vitrine mostra a variedade real antes de repetir qualquer canal.
+  const rows = [0, 1, 2].map(row => {
+    const offset = Math.floor((catalog.length * row) / 3)
+    return [...catalog.slice(offset), ...catalog.slice(0, offset)]
+  })
+  return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.closest('.channel-tile')?.remove() }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
 }
 
 function Landing({ setPortal, officialPlans }) {
