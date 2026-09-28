@@ -2,9 +2,9 @@ body{background:linear-gradient(180deg,#040714 0%,#04151c 35%,#0b242b 58%,#04071
 .channel-wall-section{max-width:none!important;width:100%;padding:120px 0;overflow:hidden;background:transparent}
 .channel-wall{width:100%;overflow:hidden;transform:none;padding:12px 0 28px;gap:14px}
 .channel-track{min-width:max-content}
-.channel-track{animation-duration:140s}
-.channel-track.row-2{animation-duration:156s}
-.channel-track.row-3{animation-duration:148s}
+.channel-track{animation-duration:300s}
+.channel-track.row-2{animation-duration:330s}
+.channel-track.row-3{animation-duration:315s}
 .channel-tile{width:104px;height:104px;flex-basis:104px;padding:14px;overflow:hidden}
 .channel-tile img{width:72px;height:62px;max-width:72px;max-height:62px;object-fit:contain;object-position:center}
 @media(max-width:850px){.channel-tile{width:90px;height:90px;flex-basis:90px}.channel-tile img{width:62px;height:52px;max-width:62px;max-height:52px}}
