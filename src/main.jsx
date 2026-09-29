@@ -119,7 +119,7 @@ function BrowsePage({ kind, onBack, officialPlans }) {
 
 const planBenefits = ['Canais de TV em 4K, UHD, FHD e HD', 'Mais de 200 mil filmes e séries', 'Principais eventos esportivos do mundo', 'Avaliações IMDb, Metacritic e muito mais', 'Catálogo completo das principais plataformas', 'Sistema anti-travamento', '2 telas simultâneas']
 
-function PlanCard({ plan, onChoose }) { return <article className={`plan ${plan.featured ? 'featured' : ''}`}>{plan.featured && <span className="best">MAIS ESCOLHIDO</span>}<h3>{plan.name}</h3><p>{plan.note}</p><div className="price"><sup>R$</sup><b>{plan.price}</b></div><small>acesso MyTV</small><ul className="plan-benefits">{planBenefits.map(benefit => <li key={benefit}>✓ <span>{benefit}</span></li>)}</ul><button className={plan.featured ? 'primary' : 'outline'} onClick={onChoose}>Escolher plano <span>→</span></button></article> }
+function PlanCard({ plan, onChoose }) { return <article className={`plan ${plan.featured ? 'featured' : ''}`}>{plan.featured && <span className="best">MAIS ESCOLHIDO</span>}<h3>{plan.name}</h3><p>{plan.note}</p><div className="price"><sup>R$</sup><b>{plan.price}</b></div><small>acesso MyTV</small><ul className="plan-benefits">{planBenefits.map(benefit => <li key={benefit}>✓ <span>{benefit}</span></li>)}</ul><button className={plan.featured ? 'primary' : 'outline'} onClick={() => onChoose(plan)}>Escolher plano <span>→</span></button></article> }
 
 function PlanGrid({ plans, onChoose }) { return <><div className="section-heading centered"><p className="eyebrow">ESCOLHA SEU TEMPO</p><h2>Uma assinatura simples.</h2><p>Escolha o plano que funciona melhor para você.</p></div><div className="plan-grid">{plans.map(plan => <PlanCard plan={plan} onChoose={onChoose} key={plan.id || plan.name} />)}</div></> }
 
@@ -177,23 +177,81 @@ function ChannelWall() {
   return <section className="channel-wall-section"><div className="channel-wall-heading"><p className="eyebrow">CANAIS QUE VOCÊ GOSTA</p><h2>Uma TV que nunca<br />fica parada.</h2><p>Uma seleção viva de canais, categorias e conteúdos para você explorar no seu ritmo.</p></div><div className="channel-wall" aria-label="Canais disponíveis na MyTV">{rows.map((row, index) => <div className={`channel-track row-${index + 1}`} key={index}>{[...row, ...row].map((channel, itemIndex) => <div className="channel-tile" key={`${channel.id}-${itemIndex}`}><img src={imageUrl(channel)} alt={channel.name} onError={(event) => { event.currentTarget.closest('.channel-tile')?.remove() }} /></div>)}</div>)}</div><button className="primary wall-cta" onClick={goToPlans}>Conhecer a MyTV <span>→</span></button></section>
 }
 
-function Landing({ setPortal, officialPlans }) {
+function Landing({ setPortal, officialPlans, onChoosePlan }) {
   const [browse, setBrowse] = useState('')
   if (browse) return <BrowsePage kind={browse} onBack={() => setBrowse('')} officialPlans={officialPlans} />
   return <><section className="hero"><div className="hero-copy"><p className="eyebrow">MYTV · DO SEU JEITO</p><h1>Uma TV completa.<br /><em>Uma experiência só sua.</em></h1><p className="lead">Canais ao vivo, filmes, séries e esportes em uma experiência rápida, elegante e feita para a sua TV.</p><div className="hero-actions"><button className="primary" onClick={() => document.querySelector('#planos').scrollIntoView({ behavior: 'smooth' })}>Começar agora <span>→</span></button><button className="text-button" onClick={() => document.querySelector('#recursos').scrollIntoView({ behavior: 'smooth' })}>Conheça a MyTV <span>↓</span></button></div><div className="trust"><span>✦</span><p><b>Feito para TV</b><small>Experiência pensada para o controle remoto.</small></p></div></div><div className="hero-visual"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><LiveMock /></div></section>
   <section id="recursos" className="features section"><div className="section-heading"><p className="eyebrow">TUDO EM UM SÓ LUGAR</p><h2>Mais conteúdo.<br />Menos complicação.</h2><p>A MyTV organiza tudo que você gosta em uma navegação simples e rápida.</p></div><FeatureCards onOpen={setBrowse} /></section>
   <ChannelWall />
   <SportsAgenda />
-  <section id="planos" className="plans section"><PlanGrid plans={officialPlans} onChoose={() => setPortal(true)} /></section>
+  <section id="planos" className="plans section"><PlanGrid plans={officialPlans} onChoose={onChoosePlan} /></section>
   <section className="cta section"><div><p className="eyebrow">PRONTO PARA COMEÇAR?</p><h2>Sua próxima tela favorita<br />começa aqui.</h2></div><button className="primary" onClick={() => setPortal(true)}>Acessar minha conta <span>→</span></button></section>
   <footer><Brand /><p>© {new Date().getFullYear()} MyTV. Todos os direitos reservados.</p><div><a href="#">Termos</a><a href="#">Privacidade</a><a href="#">Suporte</a></div></footer></>
 }
 
-function Portal({ setPortal, officialPlans }) {
-  const [tab, setTab] = useState('inicio'); const [notice, setNotice] = useState('')
-  const action = (message) => { setNotice(message); setTimeout(() => setNotice(''), 3500) }
-  return <main className="portal"><aside className="portal-side"><Brand /><div className="account"><span className="avatar large">A</span><div><b>Olá, Antonio</b><small>ID MyTV #41758333</small></div></div>{[['inicio','Visão geral'],['planos','Planos e renovação'],['dados','Meus dados'],['ajuda','Ajuda e suporte']].map(([id, label]) => <button key={id} className={tab === id ? 'selected' : ''} onClick={() => setTab(id)}><span>{id === 'inicio' ? '⌂' : id === 'planos' ? '◇' : id === 'dados' ? '◌' : '?'}</span>{label}</button>)}<button className="back" onClick={() => setPortal(false)}>← Voltar ao site</button></aside><section className="portal-main"><header><div><p className="eyebrow">MINHA CONTA</p><h1>{tab === 'inicio' ? 'Olá, Antonio.' : tab === 'planos' ? 'Planos e renovação' : tab === 'dados' ? 'Meus dados' : 'Estamos aqui para ajudar'}</h1></div><span className="avatar">A</span></header>{notice && <div className="toast">✓ {notice}</div>}{tab === 'inicio' && <><section className="status-card"><div><span className="active-dot">● Acesso ativo</span><h2>Seu acesso vai até<br /><em>30 de setembro.</em></h2><p>Renove antes do vencimento para continuar aproveitando.</p></div><button className="primary" onClick={() => setTab('planos')}>Renovar agora →</button></section><div className="account-grid"><article><small>PLANO ATUAL</small><h3>MyTV Trimestral</h3><p>3 telas simultâneas</p><button className="text-button" onClick={() => setTab('planos')}>Gerenciar plano →</button></article><article><small>PRÓXIMO VENCIMENTO</small><h3>30 set. 2026</h3><p>Faltam 3 dias</p><button className="text-button" onClick={() => setTab('planos')}>Renovar acesso →</button></article></div></>}{tab === 'planos' && <div className="portal-plans">{officialPlans.map(plan => <article className={plan.featured ? 'featured' : ''} key={plan.id || plan.name}><h3>{plan.name}</h3><p>{plan.note}</p><b>R$ {plan.price}</b><button className="primary" onClick={() => action(`Pedido de ${plan.name} iniciado. Escolha o PIX na próxima etapa.`)}>Renovar com PIX →</button></article>)}</div>}{tab === 'dados' && <form className="profile-form" onSubmit={(event) => { event.preventDefault(); action('Dados salvos com segurança.') }}><label>Nome<input defaultValue="Antonio" /></label><label>E-mail<input type="email" defaultValue="antonio@email.com" /></label><label>Telefone<input defaultValue="(00) 00000-0000" /></label><button className="primary">Salvar alterações →</button></form>}{tab === 'ajuda' && <section className="support-card"><h2>Precisa de ajuda?</h2><p>Fale com a equipe MyTV para tirar dúvidas sobre acesso, renovação ou sua TV.</p><button className="primary" onClick={() => action('O atendimento será aberto pelo WhatsApp.')}>Abrir atendimento →</button></section>}</section></main>
+async function siteAccount(action, payload = {}, token = '') {
+  const response = await fetch(`${API_BASE}/site_account.php`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ action, ...payload })
+  })
+  const data = await response.json().catch(() => ({}))
+  if (!response.ok || !data.success) throw new Error(data.message || 'Não foi possível concluir esta ação agora.')
+  return data
 }
 
-function App() { const [portal, setPortal] = useState(location.pathname.startsWith('/minha-conta')); const officialPlans = useOfficialPlans(); return <><Header portal={portal} setPortal={setPortal} />{portal ? <Portal setPortal={setPortal} officialPlans={officialPlans} /> : <Landing setPortal={setPortal} officialPlans={officialPlans} />}</> }
+function Portal({ setPortal, officialPlans, selectedPlan, onChoosePlan }) {
+  const [step, setStep] = useState('id')
+  const [accountId, setAccountId] = useState('')
+  const [password, setPassword] = useState('')
+  const [profile, setProfile] = useState({ name: '', email: '', phone: '', password: '' })
+  const [cpf, setCpf] = useState('')
+  const [token, setToken] = useState(() => sessionStorage.getItem('mytv_site_token') || '')
+  const [account, setAccount] = useState(null)
+  const [payment, setPayment] = useState(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const plan = selectedPlan || officialPlans.find(item => item.featured) || officialPlans[0]
+
+  const run = async (task) => { setLoading(true); setError(''); try { await task() } catch (err) { setError(err.message) } finally { setLoading(false) } }
+  const saveToken = (value) => { sessionStorage.setItem('mytv_site_token', value); setToken(value) }
+  const continueAfterAuth = async (value) => {
+    saveToken(value)
+    const response = await siteAccount('me', {}, value)
+    setAccount(response.account)
+    setStep(plan?.id ? 'payment' : 'plans')
+  }
+  useEffect(() => { if (!token) return; run(() => siteAccount('me', {}, token).then(response => { setAccount(response.account); setStep(plan?.id ? 'payment' : 'plans') })) }, [])
+
+  const lookup = () => run(async () => {
+    const response = await siteAccount('lookup', { account_id: accountId })
+    setStep(response.needs_completion ? 'complete' : 'login')
+  })
+  const complete = () => run(async () => {
+    const response = await siteAccount('complete_profile', { account_id: accountId, ...profile })
+    await continueAfterAuth(response.token)
+  })
+  const login = () => run(async () => {
+    const response = await siteAccount('login', { account_id: accountId, password })
+    await continueAfterAuth(response.token)
+  })
+  const createPix = () => run(async () => {
+    const response = await siteAccount('create_pix', { plan_id: plan?.id, cpf }, token)
+    setPayment(response.payment)
+    setStep('pix')
+  })
+  const choose = (item) => { onChoosePlan(item); setPayment(null); setStep('payment') }
+  const copyPix = async () => { try { await navigator.clipboard.writeText(payment.pix_code); setError('Código PIX copiado.') } catch { setError('Copie o código PIX manualmente.') } }
+
+  return <main className="checkout-page"><section className="checkout-shell"><Brand /><div className="checkout-progress"><span className={step === 'id' || step === 'login' || step === 'complete' ? 'active' : ''}>1. Conta</span><i /><span className={step === 'plans' || step === 'payment' ? 'active' : ''}>2. Pagamento</span><i /><span className={step === 'pix' ? 'active' : ''}>3. PIX</span></div>
+    {error && <div className={error === 'Código PIX copiado.' ? 'checkout-notice success' : 'checkout-notice'}>{error}</div>}
+    {step === 'id' && <section className="checkout-card"><p className="eyebrow">ACESSAR OU ASSINAR</p><h1>Digite o ID da sua TV.</h1><p>Você encontra esse número na tela de configurações do aplicativo MyTV.</p><label>ID MyTV<input value={accountId} onChange={event => setAccountId(event.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="Ex.: 41758333" autoFocus /></label><button className="primary" disabled={loading} onClick={lookup}>{loading ? 'Verificando…' : 'Continuar'} <span>→</span></button></section>}
+    {step === 'login' && <section className="checkout-card"><p className="eyebrow">BEM-VINDO DE VOLTA</p><h1>Digite sua senha.</h1><p>Conta MyTV #{accountId}</p><label>Senha<input type="password" value={password} onChange={event => setPassword(event.target.value)} autoFocus /></label><button className="primary" disabled={loading} onClick={login}>{loading ? 'Entrando…' : 'Entrar e continuar'} <span>→</span></button><button className="link-action" onClick={() => setStep('id')}>Usar outro ID</button></section>}
+    {step === 'complete' && <section className="checkout-card"><p className="eyebrow">COMPLETE SEU CADASTRO</p><h1>Proteja sua conta MyTV.</h1><p>Crie a senha e informe seus dados para vincular esta TV à sua conta.</p><div className="checkout-fields"><label>Nome completo<input value={profile.name} onChange={event => setProfile({ ...profile, name: event.target.value })} autoComplete="name" /></label><label>E-mail<input type="email" value={profile.email} onChange={event => setProfile({ ...profile, email: event.target.value })} autoComplete="email" /></label><label>Telefone com DDD<input value={profile.phone} onChange={event => setProfile({ ...profile, phone: event.target.value })} inputMode="tel" autoComplete="tel" /></label><label>Crie uma senha<input type="password" value={profile.password} onChange={event => setProfile({ ...profile, password: event.target.value })} autoComplete="new-password" /></label></div><button className="primary" disabled={loading} onClick={complete}>{loading ? 'Salvando…' : 'Salvar e continuar'} <span>→</span></button></section>}
+    {step === 'plans' && <section className="checkout-card checkout-plans"><p className="eyebrow">ESCOLHA O SEU PLANO</p><h1>Qual plano funciona melhor para você?</h1>{officialPlans.map(item => <button className={item.featured ? 'checkout-plan featured' : 'checkout-plan'} key={item.id || item.name} onClick={() => choose(item)}><span><b>{item.name}</b><small>{item.note}</small></span><strong>R$ {item.price} →</strong></button>)}</section>}
+    {step === 'payment' && <section className="checkout-card"><p className="eyebrow">FORMA DE PAGAMENTO</p><h1>Finalize com PIX.</h1><div className="selected-plan"><span>PLANO SELECIONADO</span><b>{plan?.name}</b><strong>R$ {plan?.price}</strong></div><button className="payment-method selected"><span className="pix-mark">PIX</span><span><b>PIX</b><small>Liberação automática após a confirmação.</small></span><i>✓</i></button><label>CPF do pagador<input value={cpf} onChange={event => setCpf(event.target.value)} inputMode="numeric" placeholder="000.000.000-00" /></label><button className="primary" disabled={loading} onClick={createPix}>{loading ? 'Gerando PIX…' : 'Gerar PIX'} <span>→</span></button></section>}
+    {step === 'pix' && <section className="checkout-card pix-result"><p className="eyebrow">PIX GERADO</p><h1>Faça o pagamento para liberar.</h1><p>Use o QR Code no seu banco ou copie o código abaixo. A assinatura é atualizada automaticamente após a confirmação.</p>{payment?.qr_code_url && <img className="pix-qr" src={payment.qr_code_url} alt="QR Code PIX" />}<textarea value={payment?.pix_code || ''} readOnly aria-label="Código copia e cola PIX" /><button className="outline copy-pix" onClick={copyPix}>Copiar código PIX</button><small>Pagamento processado por {payment?.provider === 'veopag' ? 'VeoPag' : 'PixUp'}.</small></section>}
+    <button className="checkout-back" onClick={() => setPortal(false)}>← Voltar ao site</button>
+  </section></main>
+}
+
+function App() { const [portal, setPortal] = useState(location.pathname.startsWith('/minha-conta')); const [selectedPlan, setSelectedPlan] = useState(null); const officialPlans = useOfficialPlans(); const choosePlan = (plan) => { setSelectedPlan(plan); setPortal(true) }; return <><Header portal={portal} setPortal={setPortal} />{portal ? <Portal setPortal={setPortal} officialPlans={officialPlans} selectedPlan={selectedPlan} onChoosePlan={choosePlan} /> : <Landing setPortal={setPortal} officialPlans={officialPlans} onChoosePlan={choosePlan} />}</> }
 createRoot(document.getElementById('root')).render(<App />)
